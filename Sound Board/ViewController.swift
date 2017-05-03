@@ -7,13 +7,14 @@
 //
 
 import UIKit
+import AVFoundation
 
 class ViewController: UIViewController, UITableViewDelegate,UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
     
     var sounds : [Sound] = []
-    
+    var audioPlayer : AVAudioPlayer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,11 +44,32 @@ class ViewController: UIViewController, UITableViewDelegate,UITableViewDataSourc
         return cell
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        do{
+        let sound = sounds[indexPath.row]
+        audioPlayer = try AVAudioPlayer(data: sound.audio! as Data)
+        audioPlayer!.play()
+        }catch{}
+        tableView.deselectRow(at: indexPath, animated: true)
     }
-
-
+   
+    
+    
+    
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete{
+            print("hello delete")
+            let sound = sounds[indexPath.row]
+            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+            context.delete(sound)
+            (UIApplication.shared.delegate as! AppDelegate).saveContext()
+            do{
+                sounds =  try context.fetch(Sound.fetchRequest())
+                tableView.reloadData()
+            }catch{}
+        }
+    }
 }
 
